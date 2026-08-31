@@ -2,6 +2,7 @@ package class
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 	"strings"
@@ -42,8 +43,14 @@ func (h *Handler) GetClassByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	class, err := h.repo.GetByID(id)
+
+	if errors.Is(err, ErrClassNotFound) {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
 	if err != nil {
-		http.Error(w, "class not found", http.StatusNotFound)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 

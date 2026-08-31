@@ -1,9 +1,10 @@
 package main
 
 import (
-	"Verum/internal/features/class"
 	"log"
 	"net/http"
+
+	"github.com/Frely25/Verum/internal/features/class"
 )
 
 func main() {

@@ -14,7 +14,7 @@ func NewMemoryRepository() *MemoryRepository {
 	}
 }
 
-var ErrClassNotFound error = errors.New("Name not found")
+var ErrClassNotFound error = errors.New("class not found")
 
 func (m *MemoryRepository) Create(class Class) (Class, error) {
 	// Добавление в массив
