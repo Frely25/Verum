@@ -31,14 +31,9 @@ func GetClassByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for i := 0; i < len(classes); i++ {
-		if id == classes[i].ID {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(classes[i])
-			return
-		}
-	}
+	// w.Header().Set("Content-Type", "application/json")
+	// 		w.WriteHeader(http.StatusOK)
+	// 		json.NewEncoder(w).Encode(classes[i])
 
 	http.Error(w, "class not found", http.StatusNotFound)
 }
