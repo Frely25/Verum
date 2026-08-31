@@ -20,6 +20,7 @@ func (m *MemoryRepository) Create(class Class) (Class, error) {
 	// Добавление в массив
 	class.ID = m.nextClassID
 	class.JoinCode = "ADC123"
+	m.nextClassID++
 
 	m.classes = append(m.classes, class)
 
