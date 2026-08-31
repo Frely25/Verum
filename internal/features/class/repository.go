@@ -1,4 +1,7 @@
 package class
 
-var classes = make([]Class, 0)
-var nextClassID = 1
+type Repository interface {
+	Create(class Class) (Class, error)
+	GetAll() ([]Class, error)
+	GetByID(id int) (Class, error)
+}

@@ -9,6 +9,10 @@ import (
 func main() {
 	mux := http.NewServeMux()
 
+	// var repo class.Repository
+
+	// repo, err := class.NewMemoryRepository()
+
 	mux.HandleFunc("/health", class.HealthsHandler)
 	mux.HandleFunc("/classes", class.ClassesHandler)
 	mux.HandleFunc("GET /classes/{id}", class.GetClassByID)
