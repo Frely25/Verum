@@ -74,7 +74,7 @@ func (h *Handler) CreateClass(w http.ResponseWriter, r *http.Request) {
 	}
 
 	class := Class{
-		Name: req.Name,
+		Name: name,
 	}
 
 	class, err = h.repo.Create(class)
