@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -25,8 +26,9 @@ var nextClassID = 1
 func main() {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/healths", healthsHandler)
+	mux.HandleFunc("/health", healthsHandler)
 	mux.HandleFunc("/classes", classesHandler)
+	mux.HandleFunc("GET /classes/{id}", getClassByID)
 
 	log.Println("server started on http://localhost:8080")
 
@@ -47,6 +49,31 @@ func classesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func getClassByID(w http.ResponseWriter, r *http.Request) {
+	idString := r.PathValue("id")
+
+	id, err := strconv.Atoi(idString)
+	if err != nil {
+		http.Error(
+			w,
+			"invalid class id",
+			http.StatusBadRequest,
+		)
+		return
+	}
+
+	for i := 0; i < len(classes); i++ {
+		if id == classes[i].ID {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(classes[i])
+			return
+		}
+	}
+
+	http.Error(w, "class not found", http.StatusNotFound)
+}
+
 func createClass(w http.ResponseWriter, r *http.Request) {
 	var req CreateClassRequest
 
@@ -60,8 +87,10 @@ func createClass(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if strings.Trim(req.Name, " ") != "" {
-		http.Error(w, "invalid name", http.StatusNotAcceptable)
+	name := strings.TrimSpace(req.Name)
+
+	if name == "" {
+		http.Error(w, "invalid name", http.StatusBadRequest)
 		return
 	}
 	class := Class{
