@@ -7,18 +7,28 @@ import (
 	"strings"
 )
 
-func ClassesHandler(w http.ResponseWriter, r *http.Request) {
+type Handler struct {
+	repo Repository
+}
+
+func NewHandler(repo Repository) *Handler {
+	return &Handler{
+		repo: repo,
+	}
+}
+
+func (h *Handler) ClassesHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
-		CreateClass(w, r)
+		h.CreateClass(w, r)
 	case http.MethodGet:
-		GetClass(w, r)
+		h.GetClasses(w, r)
 	default:
 		http.Error(w, "Method not Allowed", http.StatusMethodNotAllowed)
 	}
 }
 
-func GetClassByID(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetClassByID(w http.ResponseWriter, r *http.Request) {
 	idString := r.PathValue("id")
 
 	id, err := strconv.Atoi(idString)
@@ -31,14 +41,19 @@ func GetClassByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// w.Header().Set("Content-Type", "application/json")
-	// 		w.WriteHeader(http.StatusOK)
-	// 		json.NewEncoder(w).Encode(classes[i])
+	class, err := h.repo.GetByID(id)
+	if err != nil {
+		http.Error(w, "class not found", http.StatusNotFound)
+		return
+	}
 
-	http.Error(w, "class not found", http.StatusNotFound)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(class)
+
 }
 
-func CreateClass(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) CreateClass(w http.ResponseWriter, r *http.Request) {
 	var req CreateClassRequest
 
 	err := json.NewDecoder(r.Body).Decode(&req)
@@ -57,28 +72,44 @@ func CreateClass(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid name", http.StatusBadRequest)
 		return
 	}
+
 	class := Class{
-		ID:       nextClassID,
-		Name:     req.Name,
-		JoinCode: "ABC123",
+		Name: req.Name,
 	}
-	nextClassID++
 
-	classes = append(classes, class)
-
+	class, err = h.repo.Create(class)
+	if err != nil {
+		http.Error(
+			w,
+			"Internal server error",
+			http.StatusInternalServerError,
+		)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(class)
 }
 
-func GetClass(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetClasses(w http.ResponseWriter, r *http.Request) {
+	classes, err := h.repo.GetAll()
+	if err != nil {
+		http.Error(
+			w,
+			"Internal server error",
+			http.StatusInternalServerError,
+		)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusAccepted)
 	json.NewEncoder(w).Encode(classes)
 }
 
-func HealthsHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
+func (h *Handler) HealthHandler(w http.ResponseWriter, r *http.Request) {
+	msg := map[string]string{"message": "server is ok"}
 
-	json.NewEncoder(w).Encode(map[string]string{"message": "server is ok"})
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(msg)
 }
