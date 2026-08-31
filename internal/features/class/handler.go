@@ -48,9 +48,7 @@ func (h *Handler) GetClassByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(class)
-
 }
 
 func (h *Handler) CreateClass(w http.ResponseWriter, r *http.Request) {
@@ -103,7 +101,6 @@ func (h *Handler) GetClasses(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusAccepted)
 	json.NewEncoder(w).Encode(classes)
 }
 

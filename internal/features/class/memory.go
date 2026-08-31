@@ -7,20 +7,21 @@ type MemoryRepository struct {
 	nextClassID int
 }
 
-func NewMemoryRepository() (*MemoryRepository, error) {
+func NewMemoryRepository() *MemoryRepository {
 	return &MemoryRepository{
 		classes:     make([]Class, 0),
 		nextClassID: 1,
-	}, nil
+	}
 }
 
-var ErrorNameNotFound error = errors.New("Name not found")
+var ErrClassNotFound error = errors.New("Name not found")
 
 func (m *MemoryRepository) Create(class Class) (Class, error) {
 	// Добавление в массив
 	class.ID = m.nextClassID
-	class.JoinCode = "ADC123"
 	m.nextClassID++
+
+	class.JoinCode = "ADC123"
 
 	m.classes = append(m.classes, class)
 
@@ -37,5 +38,5 @@ func (m *MemoryRepository) GetByID(id int) (Class, error) {
 			return m.classes[i], nil
 		}
 	}
-	return Class{}, ErrorNameNotFound
+	return Class{}, ErrClassNotFound
 }
