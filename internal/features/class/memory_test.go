@@ -1,6 +1,9 @@
 package class
 
-import "testing"
+import (
+	"errors"
+	"testing"
+)
 
 // Через *testing.T мы можем сказать Go, что тест провалился
 // t.Fatal(...)
@@ -120,6 +123,19 @@ func TestMemoryRepositoryGetByID(t *testing.T) {
 			"expected %+v, got %+v",
 			created,
 			found,
+		)
+	}
+}
+
+func TestMemoryRepositoryGetByIDNotFound(t *testing.T) {
+	repo := NewMemoryRepository()
+
+	_, err := repo.GetByID(-123)
+
+	if !errors.Is(ErrClassNotFound, err) {
+		t.Errorf(
+			"expected ErrClassNotFound, got %v",
+			err,
 		)
 	}
 }
