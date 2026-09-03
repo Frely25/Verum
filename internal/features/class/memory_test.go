@@ -99,3 +99,27 @@ func TestMemoryRepositoryGetAll(t *testing.T) {
 		}
 	}
 }
+
+func TestMemoryRepositoryGetByID(t *testing.T) {
+	repo := NewMemoryRepository()
+
+	created, err := repo.Create(Class{
+		Name: "Go Backend",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	found, err := repo.GetByID(created.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if found != created {
+		t.Errorf(
+			"expected %+v, got %+v",
+			created,
+			found,
+		)
+	}
+}
