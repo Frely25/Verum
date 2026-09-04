@@ -44,11 +44,12 @@ func (m *MemoryRepository) GetByID(id int) (Class, error) {
 func (m *MemoryRepository) Delete(id int) (Class, error) {
 	for i := 0; i < len(m.classes); i++ {
 		if m.classes[i].ID == id {
+			deletedClass := m.classes[i]
 			m.classes = append(
 				m.classes[:i],
 				m.classes[i+1:]...,
 			)
-			return m.classes[i], nil
+			return deletedClass, nil
 		}
 	}
 	return Class{}, ErrClassNotFound
