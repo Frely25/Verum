@@ -40,3 +40,26 @@ func (m *MemoryRepository) GetByID(id int) (Class, error) {
 	}
 	return Class{}, ErrClassNotFound
 }
+
+func (m *MemoryRepository) Delete(id int) (Class, error) {
+	for i := 0; i < len(m.classes); i++ {
+		if m.classes[i].ID == id {
+			m.classes = append(
+				m.classes[:i],
+				m.classes[i+1:]...,
+			)
+			return m.classes[i], nil
+		}
+	}
+	return Class{}, ErrClassNotFound
+}
+
+func (m *MemoryRepository) Update(id int, classChanged Class) (Class, error) {
+	for i := 0; i < len(m.classes); i++ {
+		if m.classes[i].ID == id {
+			m.classes[i] = classChanged
+			return m.classes[i], nil
+		}
+	}
+	return Class{}, ErrClassNotFound
+}
