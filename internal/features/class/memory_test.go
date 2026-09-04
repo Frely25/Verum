@@ -132,7 +132,7 @@ func TestMemoryRepositoryGetByIDNotFound(t *testing.T) {
 
 	_, err := repo.GetByID(-123)
 
-	if !errors.Is(ErrClassNotFound, err) {
+	if !errors.Is(err, ErrClassNotFound) {
 		t.Errorf(
 			"expected ErrClassNotFound, got %v",
 			err,
