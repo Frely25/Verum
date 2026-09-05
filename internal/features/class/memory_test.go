@@ -71,10 +71,10 @@ func TestMemoryRepositoryCreateAssignsDifferentIDs(t *testing.T) {
 func TestMemoryRepositoryGetAll(t *testing.T) {
 	repo := NewMemoryRepository()
 
-	names_for_classes := []string{"Go", "Python", "Java"}
+	namesForClasses := []string{"Go", "Python", "Java"}
 
 	// Добавил в массив несколько классов
-	for _, value := range names_for_classes {
+	for _, value := range namesForClasses {
 		_, err := repo.Create(Class{
 			Name: value,
 		})
@@ -96,7 +96,7 @@ func TestMemoryRepositoryGetAll(t *testing.T) {
 		)
 	}
 
-	for index, value := range names_for_classes {
+	for index, value := range namesForClasses {
 		if classes[index].Name != value {
 			t.Fatalf("expected classes name {%q}, got {%q}", value, classes[index].Name)
 		}
@@ -138,4 +138,64 @@ func TestMemoryRepositoryGetByIDNotFound(t *testing.T) {
 			err,
 		)
 	}
+}
+
+func TestMemoryRepositoryDelete(t *testing.T) {
+	repo := NewMemoryRepository()
+
+	first, _ := repo.Create(Class{Name: "Go"})
+	second, _ := repo.Create(Class{Name: "Python"})
+
+	deleted, err := repo.Delete(first.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if deleted != first {
+		t.Errorf("expected %+v, got %+v", first, deleted)
+	}
+
+	classes, err := repo.GetAll()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(classes) != 1 {
+		t.Fatalf("expected 1 class, got %d", len(classes))
+	}
+
+	if classes[0] != second {
+		t.Errorf("expected %+v, got %+v", second, classes[0])
+	}
+}
+
+func TestMemoryRepositoryDeleteNotFound(t *testing.T) {
+
+}
+
+func TestMemoryRepositoryUpdate(t *testing.T) {
+	repo := NewMemoryRepository()
+
+	created, _ := repo.Create(Class{
+		Name: "Go",
+	})
+
+	changed := Class{
+		ID:       99,
+		Name:     "Python",
+		JoinCode: "TEST123",
+	}
+
+	updated, err := repo.Update(created.ID, changed)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if updated != changed {
+		t.Errorf("expected %+v, got %+v", changed, updated)
+	}
+}
+
+func TestMemoryRepositoryUpdateNotFound(t *testing.T) {
+
 }
