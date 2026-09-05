@@ -73,7 +73,6 @@ func TestMemoryRepositoryGetAll(t *testing.T) {
 
 	namesForClasses := []string{"Go", "Python", "Java"}
 
-	// Добавил в массив несколько классов
 	for _, value := range namesForClasses {
 		_, err := repo.Create(Class{
 			Name: value,
@@ -170,7 +169,12 @@ func TestMemoryRepositoryDelete(t *testing.T) {
 }
 
 func TestMemoryRepositoryDeleteNotFound(t *testing.T) {
+	repo := NewMemoryRepository()
 
+	_, err := repo.Delete(-42)
+	if !errors.Is(err, ErrClassNotFound) {
+		t.Errorf("expected ErrClassNotFound, got %v", err)
+	}
 }
 
 func TestMemoryRepositoryUpdate(t *testing.T) {
@@ -197,5 +201,16 @@ func TestMemoryRepositoryUpdate(t *testing.T) {
 }
 
 func TestMemoryRepositoryUpdateNotFound(t *testing.T) {
+	repo := NewMemoryRepository()
 
+	classChanged := Class{
+		ID:       521,
+		Name:     "Go Backend",
+		JoinCode: "AA123",
+	}
+
+	_, err := repo.Update(521, classChanged)
+	if !errors.Is(err, ErrClassNotFound) {
+		t.Errorf("expected ErrClassNotFound, got %v", err)
+	}
 }
