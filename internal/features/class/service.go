@@ -26,6 +26,7 @@ func (ser *ServiceClass) Update(id int, req UpdateClassRequest) (Class, error) {
 	return Class{}, nil
 }
 
-func (ser *ServiceClass) generateJoinClass() {
-
+func (ser *ServiceClass) generateJoinClass() string {
+	joinClass := ""
+	return joinClass
 }
