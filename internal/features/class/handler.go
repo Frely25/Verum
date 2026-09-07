@@ -5,16 +5,15 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
-	"strings"
 )
 
 type Handler struct {
-	repo Repository
+	ser Service
 }
 
-func NewHandler(repo Repository) *Handler {
+func NewHandler(ser Service) *Handler {
 	return &Handler{
-		repo: repo,
+		ser: ser,
 	}
 }
 
@@ -42,7 +41,7 @@ func (h *Handler) GetClassByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	class, err := h.repo.GetByID(id)
+	class, err := h.ser.GetByID(id)
 
 	if errors.Is(err, ErrClassNotFound) {
 		http.Error(w, err.Error(), http.StatusNotFound)
@@ -71,18 +70,8 @@ func (h *Handler) CreateClass(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	name := strings.TrimSpace(req.Name)
+	class, err := h.ser.Create(req)
 
-	if name == "" {
-		http.Error(w, "invalid name", http.StatusBadRequest)
-		return
-	}
-
-	class := Class{
-		Name: name,
-	}
-
-	class, err = h.repo.Create(class)
 	if err != nil {
 		http.Error(
 			w,
@@ -97,7 +86,7 @@ func (h *Handler) CreateClass(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) GetClasses(w http.ResponseWriter, r *http.Request) {
-	classes, err := h.repo.GetAll()
+	classes, err := h.ser.GetAll()
 	if err != nil {
 		http.Error(
 			w,
@@ -109,6 +98,33 @@ func (h *Handler) GetClasses(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(classes)
+}
+
+func (h *Handler) UpdateClass(w http.ResponseWriter, r *http.Request) {
+	var req UpdateClassRequest
+
+	idString := r.PathValue("id")
+	id, err := strconv.Atoi(idString)
+	if err != nil {
+		http.Error(
+			w,
+			"invalid class id",
+			http.StatusBadRequest,
+		)
+		return
+	}
+
+	err = json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+
+		return
+	}
+	changedClass, err := h.ser.Update(id, req)
+	if err != nil {
+		return
+	}
+
+	json.NewEncoder(w).Encode(changedClass)
 }
 
 func (h *Handler) HealthHandler(w http.ResponseWriter, r *http.Request) {
