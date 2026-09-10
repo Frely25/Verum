@@ -128,14 +128,34 @@ func (h *Handler) UpdateClass(w http.ResponseWriter, r *http.Request) {
 
 	err = json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-
+		http.Error(
+			w,
+			"invalid json",
+			http.StatusBadRequest,
+		)
 		return
 	}
 	changedClass, err := h.ser.Update(id, req)
-	if err != nil {
+
+	switch {
+	case errors.Is(err, apperrors.ErrClassNotFound):
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+
+	case errors.Is(err, apperrors.ErrInvalidClassName):
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+
+	case err != nil:
+		http.Error(
+			w,
+			"internal server error",
+			http.StatusInternalServerError,
+		)
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(changedClass)
 }
 
