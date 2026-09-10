@@ -1,8 +1,11 @@
-package class
+package repository
 
 import (
 	"errors"
 	"testing"
+
+	"github.com/Frely25/Verum/internal/core/domains"
+	apperrors "github.com/Frely25/Verum/internal/core/errors"
 )
 
 // Через *testing.T мы можем сказать Go, что тест провалился
@@ -20,7 +23,7 @@ func TestMemoryRepositoryCreate(t *testing.T) {
 	// Name = Go
 
 	repo := NewMemoryRepository()
-	input := Class{
+	input := domains.Class{
 		Name: "Go Backend",
 	}
 
@@ -45,14 +48,14 @@ func TestMemoryRepositoryCreate(t *testing.T) {
 func TestMemoryRepositoryCreateAssignsDifferentIDs(t *testing.T) {
 	repo := NewMemoryRepository()
 
-	first, err := repo.Create(Class{
+	first, err := repo.Create(domains.Class{
 		Name: "Go",
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	second, err := repo.Create(Class{
+	second, err := repo.Create(domains.Class{
 		Name: "Python",
 	})
 	if err != nil {
@@ -74,7 +77,7 @@ func TestMemoryRepositoryGetAll(t *testing.T) {
 	namesForClasses := []string{"Go", "Python", "Java"}
 
 	for _, value := range namesForClasses {
-		_, err := repo.Create(Class{
+		_, err := repo.Create(domains.Class{
 			Name: value,
 		})
 
@@ -105,7 +108,7 @@ func TestMemoryRepositoryGetAll(t *testing.T) {
 func TestMemoryRepositoryGetByID(t *testing.T) {
 	repo := NewMemoryRepository()
 
-	created, err := repo.Create(Class{
+	created, err := repo.Create(domains.Class{
 		Name: "Go Backend",
 	})
 	if err != nil {
@@ -131,7 +134,7 @@ func TestMemoryRepositoryGetByIDNotFound(t *testing.T) {
 
 	_, err := repo.GetByID(-123)
 
-	if !errors.Is(err, ErrClassNotFound) {
+	if !errors.Is(err, apperrors.ErrClassNotFound) {
 		t.Errorf(
 			"expected ErrClassNotFound, got %v",
 			err,
@@ -142,8 +145,8 @@ func TestMemoryRepositoryGetByIDNotFound(t *testing.T) {
 func TestMemoryRepositoryDelete(t *testing.T) {
 	repo := NewMemoryRepository()
 
-	first, _ := repo.Create(Class{Name: "Go"})
-	second, _ := repo.Create(Class{Name: "Python"})
+	first, _ := repo.Create(domains.Class{Name: "Go"})
+	second, _ := repo.Create(domains.Class{Name: "Python"})
 
 	deleted, err := repo.Delete(first.ID)
 	if err != nil {
@@ -172,7 +175,7 @@ func TestMemoryRepositoryDeleteNotFound(t *testing.T) {
 	repo := NewMemoryRepository()
 
 	_, err := repo.Delete(-42)
-	if !errors.Is(err, ErrClassNotFound) {
+	if !errors.Is(err, apperrors.ErrClassNotFound) {
 		t.Errorf("expected ErrClassNotFound, got %v", err)
 	}
 }
@@ -180,11 +183,11 @@ func TestMemoryRepositoryDeleteNotFound(t *testing.T) {
 func TestMemoryRepositoryUpdate(t *testing.T) {
 	repo := NewMemoryRepository()
 
-	created, _ := repo.Create(Class{
+	created, _ := repo.Create(domains.Class{
 		Name: "Go",
 	})
 
-	changed := Class{
+	changed := domains.Class{
 		ID:       99,
 		Name:     "Python",
 		JoinCode: "TEST123",
@@ -203,14 +206,14 @@ func TestMemoryRepositoryUpdate(t *testing.T) {
 func TestMemoryRepositoryUpdateNotFound(t *testing.T) {
 	repo := NewMemoryRepository()
 
-	classChanged := Class{
+	classChanged := domains.Class{
 		ID:       521,
 		Name:     "Go Backend",
 		JoinCode: "AA123",
 	}
 
 	_, err := repo.Update(521, classChanged)
-	if !errors.Is(err, ErrClassNotFound) {
+	if !errors.Is(err, apperrors.ErrClassNotFound) {
 		t.Errorf("expected ErrClassNotFound, got %v", err)
 	}
 }

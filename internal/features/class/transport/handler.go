@@ -1,10 +1,12 @@
-package class
+package transport
 
 import (
 	"encoding/json"
 	"errors"
 	"net/http"
 	"strconv"
+
+	apperrors "github.com/Frely25/Verum/internal/core/errors"
 )
 
 type Handler struct {
@@ -43,7 +45,7 @@ func (h *Handler) GetClassByID(w http.ResponseWriter, r *http.Request) {
 
 	class, err := h.ser.GetByID(id)
 
-	if errors.Is(err, ErrClassNotFound) {
+	if errors.Is(err, apperrors.ErrClassNotFound) {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}

@@ -1,13 +1,14 @@
-package class
+package service
 
 import (
 	"crypto/rand"
 	"encoding/base32"
-	"errors"
 	"strings"
-)
 
-var ErrInvalidClassName = errors.New("invalid class name")
+	"github.com/Frely25/Verum/internal/core/domains"
+	apperrors "github.com/Frely25/Verum/internal/core/errors"
+	"github.com/Frely25/Verum/internal/features/class/transport"
+)
 
 type ClassService struct {
 	repo Repository
@@ -19,19 +20,19 @@ func NewClassService(repo Repository) *ClassService {
 	}
 }
 
-func (s *ClassService) Create(req CreateClassRequest) (Class, error) {
+func (s *ClassService) Create(req transport.CreateClassRequest) (domains.Class, error) {
 	name := strings.TrimSpace(req.Name)
 
 	if name == "" {
-		return Class{}, ErrInvalidClassName
+		return domains.Class{}, apperrors.ErrInvalidClassName
 	}
 
 	joinCode, err := s.generateJoinCode()
 	if err != nil {
-		return Class{}, err
+		return domains.Class{}, err
 	}
 
-	newClass := Class{
+	newClass := domains.Class{
 		Name:     name,
 		JoinCode: joinCode,
 	}
@@ -39,28 +40,28 @@ func (s *ClassService) Create(req CreateClassRequest) (Class, error) {
 	return s.repo.Create(newClass)
 }
 
-func (s *ClassService) GetByID(id int) (Class, error) {
+func (s *ClassService) GetByID(id int) (domains.Class, error) {
 	return s.repo.GetByID(id)
 }
 
-func (s *ClassService) GetAll() ([]Class, error) {
+func (s *ClassService) GetAll() ([]domains.Class, error) {
 	return s.repo.GetAll()
 }
 
 func (s *ClassService) Update(
 	id int,
-	req UpdateClassRequest,
-) (Class, error) {
+	req transport.UpdateClassRequest,
+) (domains.Class, error) {
 	currentClass, err := s.repo.GetByID(id)
 	if err != nil {
-		return Class{}, err
+		return domains.Class{}, err
 	}
 
 	if req.Name != "" {
 		name := strings.TrimSpace(req.Name)
 
 		if name == "" {
-			return Class{}, ErrInvalidClassName
+			return domains.Class{}, apperrors.ErrInvalidClassName
 		}
 
 		currentClass.Name = name
@@ -69,7 +70,7 @@ func (s *ClassService) Update(
 	if req.RequestJoinCode {
 		joinCode, err := s.generateJoinCode()
 		if err != nil {
-			return Class{}, err
+			return domains.Class{}, err
 		}
 
 		currentClass.JoinCode = joinCode

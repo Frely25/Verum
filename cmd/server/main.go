@@ -4,13 +4,15 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/Frely25/Verum/internal/features/class"
+	"github.com/Frely25/Verum/internal/features/class/repository"
+	"github.com/Frely25/Verum/internal/features/class/service"
+	"github.com/Frely25/Verum/internal/features/class/transport"
 )
 
 func main() {
-	repo := class.NewMemoryRepository()
-	service := class.NewClassService(repo)
-	handler := class.NewHandler(service)
+	repo := repository.NewMemoryRepository()
+	service := service.NewClassService(repo)
+	handler := transport.NewHandler(service)
 
 	mux := http.NewServeMux()
 
