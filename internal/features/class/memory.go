@@ -21,8 +21,6 @@ func (m *MemoryRepository) Create(class Class) (Class, error) {
 	class.ID = m.nextClassID
 	m.nextClassID++
 
-	class.JoinCode = "ADC123"
-
 	m.classes = append(m.classes, class)
 
 	return class, nil
