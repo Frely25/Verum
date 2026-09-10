@@ -74,14 +74,24 @@ func (h *Handler) CreateClass(w http.ResponseWriter, r *http.Request) {
 
 	class, err := h.ser.Create(req)
 
+	if errors.Is(err, apperrors.ErrInvalidClassName) {
+		http.Error(
+			w,
+			err.Error(),
+			http.StatusBadRequest,
+		)
+		return
+	}
+
 	if err != nil {
 		http.Error(
 			w,
-			"Internal server error",
+			"internal server error",
 			http.StatusInternalServerError,
 		)
 		return
 	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(class)
