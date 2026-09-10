@@ -6,35 +6,45 @@ import (
 )
 
 type MemoryRepository struct {
-	classes     []domains.Class
+	classes     []classModel
 	nextClassID int
 }
 
 func NewMemoryRepository() *MemoryRepository {
 	return &MemoryRepository{
-		classes:     make([]domains.Class, 0),
+		classes:     make([]classModel, 0),
 		nextClassID: 1,
 	}
 }
 
 func (m *MemoryRepository) Create(class domains.Class) (domains.Class, error) {
 	// Добавление в массив
-	class.ID = m.nextClassID
+
+	model := fromDomain(class)
+
+	model.ID = m.nextClassID
 	m.nextClassID++
 
-	m.classes = append(m.classes, class)
+	m.classes = append(m.classes, model)
 
-	return class, nil
+	return toDomain(model), nil
 }
+
 func (m *MemoryRepository) GetAll() ([]domains.Class, error) {
-	return m.classes, nil
+	need_classes := make([]domains.Class, len(m.classes))
+
+	for _, model := range m.classes {
+		need_classes = append(need_classes, toDomain(model))
+	}
+
+	return need_classes, nil
 }
 
 func (m *MemoryRepository) GetByID(id int) (domains.Class, error) {
 	// Логика for
 	for i := 0; i < len(m.classes); i++ {
 		if id == m.classes[i].ID {
-			return m.classes[i], nil
+			return toDomain(m.classes[i]), nil
 		}
 	}
 	return domains.Class{}, apperrors.ErrClassNotFound
@@ -48,7 +58,7 @@ func (m *MemoryRepository) Delete(id int) (domains.Class, error) {
 				m.classes[:i],
 				m.classes[i+1:]...,
 			)
-			return deletedClass, nil
+			return toDomain(deletedClass), nil
 		}
 	}
 	return domains.Class{}, apperrors.ErrClassNotFound
@@ -57,8 +67,8 @@ func (m *MemoryRepository) Delete(id int) (domains.Class, error) {
 func (m *MemoryRepository) Update(id int, classChanged domains.Class) (domains.Class, error) {
 	for i := 0; i < len(m.classes); i++ {
 		if m.classes[i].ID == id {
-			m.classes[i] = classChanged
-			return m.classes[i], nil
+			m.classes[i] = fromDomain(classChanged)
+			return toDomain(m.classes[i]), nil
 		}
 	}
 	return domains.Class{}, apperrors.ErrClassNotFound
