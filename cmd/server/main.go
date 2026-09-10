@@ -9,7 +9,7 @@ import (
 
 func main() {
 	repo := class.NewMemoryRepository()
-	service := class.NewServiceClass(repo)
+	service := class.NewClassService(repo)
 	handler := class.NewHandler(service)
 
 	mux := http.NewServeMux()
