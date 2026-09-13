@@ -31,3 +31,11 @@ func (s *Service) Create(ctx context.Context, newUser domains.User) (domains.Use
 
 	return s.repo.Create(ctx, newUser)
 }
+
+func (s *Service) GetByID(ctx context.Context, id int) (domains.User, error) {
+	if id <= 0 {
+		return domains.User{}, apperrors.ErrInvalidUser
+	}
+
+	return s.repo.GetByID(ctx, id)
+}
