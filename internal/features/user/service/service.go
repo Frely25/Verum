@@ -39,3 +39,13 @@ func (s *Service) GetByID(ctx context.Context, id int) (domains.User, error) {
 
 	return s.repo.GetByID(ctx, id)
 }
+
+func (s *Service) GetByLogin(ctx context.Context, login string) (domains.User, error) {
+	login = strings.TrimSpace(login)
+
+	if login == "" {
+		return domains.User{}, apperrors.ErrInvalidUser
+	}
+
+	return s.repo.GetByLogin(ctx, login)
+}
