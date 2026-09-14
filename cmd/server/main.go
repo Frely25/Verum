@@ -1,32 +1,37 @@
 package main
 
 import (
+	"context"
 	"log"
-	"net/http"
 
-	"github.com/Frely25/Verum/internal/features/class/repository"
-	"github.com/Frely25/Verum/internal/features/class/service"
-	"github.com/Frely25/Verum/internal/features/class/transport"
+	"github.com/Frely25/Verum/internal/core/config"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func main() {
-	repo := repository.NewMemoryRepository()
-	service := service.NewClassService(repo)
-	handler := transport.NewHandler(service)
+	ctx := context.Background()
 
-	mux := http.NewServeMux()
-
-	mux.HandleFunc("/health", handler.HealthHandler)
-	mux.HandleFunc("/classes", handler.ClassesHandler)
-	mux.HandleFunc("GET /classes/{id}", handler.GetClassByID)
-	mux.HandleFunc("PATCH /classes/{id}", handler.UpdateClass)
-
-	log.Println("server started on http://localhost:8080")
-
-	err := http.ListenAndServe(":8080", mux)
+	cfg, err := config.Load()
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	db, err := pgxpool.New(
+		ctx,
+		cfg.DatabaseURL,
+	)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer db.Close()
+
+	if err := db.Ping(ctx); err != nil {
+		log.Fatal(err)
+	}
+
+	log.Println("PostgreSQL connected")
 }
 
 // PATCH 41.51.125.63:8080/classes/5

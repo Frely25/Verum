@@ -8,7 +8,7 @@ import (
 )
 
 type Config struct {
-	DataBaseURL  string
+	DatabaseURL  string
 	HTTPPort     string
 	SessionTTL   time.Duration
 	CookieSecure bool
@@ -27,7 +27,7 @@ func Load() (Config, error) {
 
 	sessionTTL := 24 * time.Hour
 
-	if value := os.Getenv("SESSIONTTL"); value != "" {
+	if value := os.Getenv("SESSION_TTL"); value != "" {
 		parsedSessionTTL, err := time.ParseDuration(value)
 
 		if err != nil {
@@ -49,7 +49,7 @@ func Load() (Config, error) {
 	}
 
 	return Config{
-		DataBaseURL:  dataBaseUrl,
+		DatabaseURL:  dataBaseUrl,
 		HTTPPort:     httpPort,
 		SessionTTL:   sessionTTL,
 		CookieSecure: cookieSecure,
