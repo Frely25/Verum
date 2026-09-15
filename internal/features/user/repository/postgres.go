@@ -86,3 +86,39 @@ func (r *PostgreRepository) GetByID(ctx context.Context, id int) (domains.User, 
 
 	return model.toDomain(), nil
 }
+
+func (r *PostgreRepository) GetByLogin(ctx context.Context, login string) (domains.User, error) {
+	query := `
+		SELECT
+			id,
+			login,
+			password_hash,
+			display_name,
+			created_at,
+			updated_at
+		FROM users
+		WHERE login = $1
+	`
+
+	var model userModel
+
+	err := r.pool.QueryRow(ctx, query, login).Scan(
+		&model.ID,
+		&model.Login,
+		&model.PasswordHash,
+		&model.DisplayName,
+		&model.CreatedAt,
+		&model.UpdatedAt,
+	)
+
+	if errors.Is(err, pgx.ErrNoRows) {
+		return domains.User{},
+			apperrors.ErrUserNotFound
+	}
+
+	if err != nil {
+		return domains.User{}, err
+	}
+
+	return model.toDomain(), nil
+}
