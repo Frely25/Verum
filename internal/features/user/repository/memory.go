@@ -22,10 +22,7 @@ func NewMemoryRepository() *MemoryRepository {
 	}
 }
 
-func (r *MemoryRepository) Create(
-	ctx context.Context,
-	newUser domains.User,
-) (domains.User, error) {
+func (r *MemoryRepository) Create(ctx context.Context, newUser domains.User) (domains.User, error) {
 
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -49,10 +46,7 @@ func (r *MemoryRepository) Create(
 	return newUser, nil
 }
 
-func (r *MemoryRepository) GetByID(
-	ctx context.Context,
-	id int,
-) (domains.User, error) {
+func (r *MemoryRepository) GetByID(ctx context.Context, id int) (domains.User, error) {
 
 	r.mu.RLock()
 	defer r.mu.RUnlock()
@@ -66,10 +60,7 @@ func (r *MemoryRepository) GetByID(
 	return domains.User{}, apperrors.ErrUserNotFound
 }
 
-func (r *MemoryRepository) GetByLogin(
-	ctx context.Context,
-	login string,
-) (domains.User, error) {
+func (r *MemoryRepository) GetByLogin(ctx context.Context, login string) (domains.User, error) {
 
 	r.mu.RLock()
 	defer r.mu.RUnlock()
