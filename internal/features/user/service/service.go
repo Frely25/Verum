@@ -22,10 +22,7 @@ func (s *Service) Create(ctx context.Context, newUser domains.User) (domains.Use
 	newUser.Login = strings.TrimSpace(newUser.Login)
 	newUser.DisplayName = strings.TrimSpace(newUser.DisplayName)
 
-	if newUser.Login == "" ||
-		newUser.DisplayName == "" ||
-		newUser.PasswordHash == "" {
-
+	if newUser.Login == "" || newUser.DisplayName == "" || newUser.PasswordHash == "" {
 		return domains.User{}, apperrors.ErrInvalidUser
 	}
 
