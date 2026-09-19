@@ -31,7 +31,7 @@ func (m *MemoryRepository) Create(class domains.Class) (domains.Class, error) {
 }
 
 func (m *MemoryRepository) GetAll() ([]domains.Class, error) {
-	need_classes := make([]domains.Class, len(m.classes))
+	need_classes := make([]domains.Class, 0, len(m.classes))
 
 	for _, model := range m.classes {
 		need_classes = append(need_classes, toDomain(model))
