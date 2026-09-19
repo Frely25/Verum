@@ -23,7 +23,7 @@ func NewPostgreRepository(db *pgxpool.Pool) *PostgreRepository {
 
 func (r *PostgreRepository) Create(ctx context.Context, newUser domains.User) (domains.User, error) {
 	query := `
-		INSERT INTO (login, password_hash, display_name) VALUES ($1, $2, $3)
+		INSERT INTO users (login, password_hash, display_name) VALUES ($1, $2, $3)
 		RETURNING (id, login, password_hash, display_name, created_at, updated_at)
 	`
 	var model userModel
