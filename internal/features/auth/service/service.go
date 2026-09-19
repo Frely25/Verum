@@ -18,10 +18,11 @@ type Service struct {
 	sessionTTL time.Duration
 }
 
-func NewService(users UserService, sessions SessionRepository) *Service {
+func NewService(users UserService, sessions SessionRepository, sessionTTL time.Duration) *Service {
 	return &Service{
-		users:    users,
-		sessions: sessions,
+		users:      users,
+		sessions:   sessions,
+		sessionTTL: sessionTTL,
 	}
 }
 
