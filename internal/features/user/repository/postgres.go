@@ -76,8 +76,7 @@ func (r *PostgreRepository) GetByID(ctx context.Context, id int) (domains.User, 
 	)
 
 	if errors.Is(err, pgx.ErrNoRows) {
-		return domains.User{},
-			apperrors.ErrUserNotFound
+		return domains.User{}, apperrors.ErrUserNotFound
 	}
 
 	if err != nil {
