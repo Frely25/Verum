@@ -4,5 +4,5 @@ CREATE TABLE users (
     password_hash TEXT NOT NULL,
     display_name VARCHAR(100) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    update_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
