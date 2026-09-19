@@ -20,7 +20,6 @@ type UserResponse struct {
 }
 
 func userToResponse(user domains.User) UserResponse {
-
 	return UserResponse{
 		ID:          user.ID,
 		Login:       user.Login,
