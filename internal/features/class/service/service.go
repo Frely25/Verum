@@ -1,13 +1,15 @@
 package service
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/base32"
+	"errors"
 	"strings"
 
 	"github.com/Frely25/Verum/internal/core/domains"
 	apperrors "github.com/Frely25/Verum/internal/core/errors"
-	"github.com/Frely25/Verum/internal/features/class/transport"
+	"github.com/Frely25/Verum/internal/features/class"
 )
 
 type ClassService struct {
@@ -20,96 +22,117 @@ func NewClassService(repo Repository) *ClassService {
 	}
 }
 
-func (s *ClassService) Create(req transport.CreateClassRequest) (domains.Class, error) {
-	name := strings.TrimSpace(req.Name)
+func (s *ClassService) Create(ctx context.Context, input class.CreateInput) (domains.Class, error) {
+	name := strings.TrimSpace(input.Name)
 
 	if name == "" {
 		return domains.Class{}, apperrors.ErrInvalidClassName
 	}
 
-	joinCode, err := s.generateJoinCode()
+	for {
+		joinCode, err := generateJoinCode()
+		if err != nil {
+			return domains.Class{}, err
+		}
+
+		newClass := domains.Class{
+			Name:     name,
+			JoinCode: joinCode,
+		}
+
+		createdClass, err := s.repo.Create(ctx, newClass)
+
+		if errors.Is(err, apperrors.ErrJoinCodeAlreadyTaken) {
+			continue
+		}
+
+		if err != nil {
+			return domains.Class{}, err
+		}
+
+		return createdClass, nil
+	}
+}
+
+func generateJoinCode() (string, error) {
+	randomBytes := make([]byte, 5)
+
+	_, err := rand.Read(randomBytes)
+	if err != nil {
+		return "", err
+	}
+
+	value := base32.StdEncoding.
+		WithPadding(base32.NoPadding).
+		EncodeToString(randomBytes)
+
+	return "CLS-" + value, nil
+}
+
+func (s *ClassService) GetByID(ctx context.Context, id int) (domains.Class, error) {
+	if id <= 0 {
+		return domains.Class{}, apperrors.ErrClassNotFound
+	}
+
+	return s.repo.GetByID(ctx, id)
+}
+
+func (s *ClassService) GetByJoinCode(ctx context.Context, joinCode string) (domains.Class, error) {
+	joinCode = strings.TrimSpace(joinCode)
+
+	if joinCode == "" {
+		return domains.Class{}, apperrors.ErrClassNotFound
+	}
+
+	return s.repo.GetByJoinCode(ctx, joinCode)
+}
+
+func (s *ClassService) Update(ctx context.Context, id int, input class.UpdateInput) (domains.Class, error) {
+	currentClass, err := s.repo.GetByID(ctx, id)
+
 	if err != nil {
 		return domains.Class{}, err
 	}
 
-	newClass := domains.Class{
-		Name:     name,
-		JoinCode: joinCode,
-	}
+	changed := false
 
-	return s.repo.Create(newClass)
-}
-
-func (s *ClassService) GetByID(id int) (domains.Class, error) {
-	return s.repo.GetByID(id)
-}
-
-func (s *ClassService) GetAll() ([]domains.Class, error) {
-	return s.repo.GetAll()
-}
-
-func (s *ClassService) Update(
-	id int,
-	req transport.UpdateClassRequest,
-) (domains.Class, error) {
-	currentClass, err := s.repo.GetByID(id)
-	if err != nil {
-		return domains.Class{}, err
-	}
-
-	if req.Name != "" {
-		name := strings.TrimSpace(req.Name)
+	if input.Name != "" {
+		name := strings.TrimSpace(input.Name)
 
 		if name == "" {
 			return domains.Class{}, apperrors.ErrInvalidClassName
 		}
 
 		currentClass.Name = name
+		changed = true
 	}
 
-	if req.RequestJoinCode {
-		joinCode, err := s.generateJoinCode()
+	if !input.RequestJoinCode {
+		if !changed {
+			return currentClass, nil
+		}
+
+		return s.repo.Update(ctx, currentClass)
+	}
+
+	for {
+		joinCode, err := generateJoinCode()
 		if err != nil {
 			return domains.Class{}, err
 		}
 
 		currentClass.JoinCode = joinCode
-	}
 
-	return s.repo.Update(id, currentClass)
-}
+		updatedClass, err := s.repo.Update(ctx, currentClass)
 
-func (s *ClassService) generateJoinCode() (string, error) {
-	for {
-		randomBytes := make([]byte, 5)
+		if errors.Is(err, apperrors.ErrJoinCodeAlreadyTaken) {
+			continue
+		}
 
-		_, err := rand.Read(randomBytes)
 		if err != nil {
-			return "", err
+			return domains.Class{}, err
 		}
 
-		value := base32.StdEncoding.
-			WithPadding(base32.NoPadding).
-			EncodeToString(randomBytes)
-
-		joinCode := "CLS-" + value
-
-		classes, err := s.repo.GetAll()
-		if err != nil {
-			return "", err
-		}
-
-		exists := false
-
-		for _, currentClass := range classes {
-			if currentClass.JoinCode == joinCode {
-				exists = true
-				break
-			}
-		}
-
-		if !exists {
-			return joinCode, nil
-		}
+		return updatedClass, nil
 	}
 }

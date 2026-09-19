@@ -7,6 +7,7 @@ import (
 	"time"
 
 	apperrors "github.com/Frely25/Verum/internal/core/errors"
+	"github.com/Frely25/Verum/internal/core/tools"
 	"github.com/Frely25/Verum/internal/features/auth"
 )
 
@@ -22,17 +23,6 @@ func NewHandler(service Service, cookieSecure bool) *Handler {
 		service:      service,
 		cookieSecure: cookieSecure,
 	}
-}
-
-func writeJSON(w http.ResponseWriter, status int, data any) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-
-	if data == nil {
-		return
-	}
-
-	_ = json.NewEncoder(w).Encode(data)
 }
 
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
@@ -68,7 +58,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusCreated, userToResponse(createdUser))
+	tools.WriteJSON(w, http.StatusCreated, userToResponse(createdUser))
 }
 
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
@@ -110,11 +100,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	},
 	)
 
-	writeJSON(
-		w,
-		http.StatusOK,
-		userToResponse(result.User),
-	)
+	tools.WriteJSON(w, http.StatusOK, userToResponse(result.User))
 }
 
 func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
@@ -132,7 +118,7 @@ func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusOK, userToResponse(currentUser))
+	tools.WriteJSON(w, http.StatusOK, userToResponse(currentUser))
 }
 
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {

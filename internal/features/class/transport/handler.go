@@ -7,6 +7,8 @@ import (
 	"strconv"
 
 	apperrors "github.com/Frely25/Verum/internal/core/errors"
+	"github.com/Frely25/Verum/internal/core/tools"
+	"github.com/Frely25/Verum/internal/features/class"
 )
 
 type Handler struct {
@@ -19,105 +21,59 @@ func NewHandler(ser Service) *Handler {
 	}
 }
 
-func (h *Handler) ClassesHandler(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodPost:
-		h.CreateClass(w, r)
-	case http.MethodGet:
-		h.GetClasses(w, r)
-	default:
-		http.Error(w, "Method not Allowed", http.StatusMethodNotAllowed)
+func (h *Handler) CreateClass(w http.ResponseWriter, r *http.Request) {
+	var reqCreate CreateClassRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&reqCreate); err != nil {
+		http.Error(w, "invalid json", http.StatusBadRequest)
+		return
 	}
+
+	newClass, err := h.ser.Create(r.Context(), class.CreateInput{
+		Name: reqCreate.Name,
+	})
+
+	switch {
+	case errors.Is(err, apperrors.ErrInvalidClassName):
+		http.Error(w, "invalid name", http.StatusUnprocessableEntity)
+		return
+	case err != nil:
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	tools.WriteJSON(w, http.StatusCreated, newClass)
 }
 
 func (h *Handler) GetClassByID(w http.ResponseWriter, r *http.Request) {
 	idString := r.PathValue("id")
 
 	id, err := strconv.Atoi(idString)
-	if err != nil {
-		http.Error(
-			w,
-			"invalid class id",
-			http.StatusBadRequest,
-		)
+	if err != nil || id <= 0 {
+		http.Error(w, "invalid class id", http.StatusBadRequest)
 		return
 	}
 
-	class, err := h.ser.GetByID(id)
+	currentClass, err := h.ser.GetByID(r.Context(), id)
 
-	if errors.Is(err, apperrors.ErrClassNotFound) {
+	switch {
+	case errors.Is(err, apperrors.ErrClassNotFound):
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
-	}
 
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	case err != nil:
+		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(class)
-}
-
-func (h *Handler) CreateClass(w http.ResponseWriter, r *http.Request) {
-	var req CreateClassRequest
-
-	err := json.NewDecoder(r.Body).Decode(&req)
-	if err != nil {
-		http.Error(
-			w,
-			"invalid json",
-			http.StatusBadRequest,
-		)
-		return
-	}
-
-	class, err := h.ser.Create(req)
-
-	if errors.Is(err, apperrors.ErrInvalidClassName) {
-		http.Error(
-			w,
-			err.Error(),
-			http.StatusBadRequest,
-		)
-		return
-	}
-
-	if err != nil {
-		http.Error(
-			w,
-			"internal server error",
-			http.StatusInternalServerError,
-		)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(class)
-}
-
-func (h *Handler) GetClasses(w http.ResponseWriter, r *http.Request) {
-	classes, err := h.ser.GetAll()
-	if err != nil {
-		http.Error(
-			w,
-			"Internal server error",
-			http.StatusInternalServerError,
-		)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(classes)
+	tools.WriteJSON(w, http.StatusOK, currentClass)
 }
 
 func (h *Handler) UpdateClass(w http.ResponseWriter, r *http.Request) {
-	var req UpdateClassRequest
-
 	idString := r.PathValue("id")
+
 	id, err := strconv.Atoi(idString)
-	if err != nil {
+	if err != nil || id <= 0 {
 		http.Error(
 			w,
 			"invalid class id",
@@ -126,16 +82,17 @@ func (h *Handler) UpdateClass(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = json.NewDecoder(r.Body).Decode(&req)
-	if err != nil {
-		http.Error(
-			w,
-			"invalid json",
-			http.StatusBadRequest,
-		)
+	var req UpdateClassRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "invalid json", http.StatusBadRequest)
 		return
 	}
-	changedClass, err := h.ser.Update(id, req)
+
+	updatedClass, err := h.ser.Update(r.Context(), id, class.UpdateInput{
+		Name:            req.Name,
+		RequestJoinCode: req.RequestJoinCode,
+	})
 
 	switch {
 	case errors.Is(err, apperrors.ErrClassNotFound):
@@ -143,25 +100,13 @@ func (h *Handler) UpdateClass(w http.ResponseWriter, r *http.Request) {
 		return
 
 	case errors.Is(err, apperrors.ErrInvalidClassName):
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 		return
 
 	case err != nil:
-		http.Error(
-			w,
-			"internal server error",
-			http.StatusInternalServerError,
-		)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(changedClass)
-}
-
-func (h *Handler) HealthHandler(w http.ResponseWriter, r *http.Request) {
-	msg := map[string]string{"message": "server is ok"}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(msg)
+	tools.WriteJSON(w, http.StatusOK, updatedClass)
 }

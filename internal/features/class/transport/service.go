@@ -1,10 +1,14 @@
 package transport
 
-import "github.com/Frely25/Verum/internal/core/domains"
+import (
+	"context"
+
+	"github.com/Frely25/Verum/internal/core/domains"
+	classfeature "github.com/Frely25/Verum/internal/features/class"
+)
 
 type Service interface {
-	Create(req CreateClassRequest) (domains.Class, error)
-	GetByID(id int) (domains.Class, error)
-	GetAll() ([]domains.Class, error)
-	Update(id int, req UpdateClassRequest) (domains.Class, error)
+	Create(ctx context.Context, input classfeature.CreateInput) (domains.Class, error)
+	GetByID(ctx context.Context, id int) (domains.Class, error)
+	Update(ctx context.Context, id int, input classfeature.UpdateInput) (domains.Class, error)
 }

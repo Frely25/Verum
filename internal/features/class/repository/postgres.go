@@ -48,8 +48,7 @@ func (r *PostgreRepository) Create(ctx context.Context, newClass domains.Class) 
 		var pgErr *pgconn.PgError
 
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
-			return domains.Class{},
-				apperrors.ErrJoinCodeAlreadyTaken
+			return domains.Class{}, apperrors.ErrJoinCodeAlreadyTaken
 		}
 
 		return domains.Class{}, err
@@ -115,65 +114,12 @@ func (r *PostgreRepository) GetByJoinCode(ctx context.Context, joinCode string) 
 	return toDomain(model), nil
 }
 
-func (r *PostgreRepository) GetAll(
-	ctx context.Context,
-) ([]domains.Class, error) {
-
-	query := `
-		SELECT id, name, join_code, created_at, updated_at FROM classes
-		ORDER BY id
-	`
-
-	rows, err := r.pool.Query(ctx, query)
-
-	if err != nil {
-		return nil, err
-	}
-
-	defer rows.Close()
-
-	classes := make([]domains.Class, 0)
-
-	for rows.Next() {
-		var model classModel
-
-		err := rows.Scan(
-			&model.ID,
-			&model.Name,
-			&model.JoinCode,
-			&model.CreatedAt,
-			&model.UpdatedAt,
-		)
-
-		if err != nil {
-			return nil, err
-		}
-
-		classes = append(classes, toDomain(model))
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-
-	return classes, nil
-}
-
-func (r *PostgreRepository) Update(
-	ctx context.Context,
-	classChanged domains.Class,
-) (domains.Class, error) {
-
+func (r *PostgreRepository) Update(ctx context.Context, classChanged domains.Class) (domains.Class, error) {
 	query := `
 		UPDATE classes 
 		SET name = $1, join_code = $2, updated_at = NOW() 
 		WHERE id = $3
-		RETURNING
-			id,
-			name,
-			join_code,
-			created_at,
-			updated_at
+		RETURNING id, name, join_code, created_at, updated_at
 	`
 
 	var model classModel
