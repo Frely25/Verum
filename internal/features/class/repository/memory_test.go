@@ -142,44 +142,6 @@ func TestMemoryRepositoryGetByIDNotFound(t *testing.T) {
 	}
 }
 
-func TestMemoryRepositoryDelete(t *testing.T) {
-	repo := NewMemoryRepository()
-
-	first, _ := repo.Create(domains.Class{Name: "Go"})
-	second, _ := repo.Create(domains.Class{Name: "Python"})
-
-	deleted, err := repo.Delete(first.ID)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if deleted != first {
-		t.Errorf("expected %+v, got %+v", first, deleted)
-	}
-
-	classes, err := repo.GetAll()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if len(classes) != 1 {
-		t.Fatalf("expected 1 class, got %d", len(classes))
-	}
-
-	if classes[0] != second {
-		t.Errorf("expected %+v, got %+v", second, classes[0])
-	}
-}
-
-func TestMemoryRepositoryDeleteNotFound(t *testing.T) {
-	repo := NewMemoryRepository()
-
-	_, err := repo.Delete(-42)
-	if !errors.Is(err, apperrors.ErrClassNotFound) {
-		t.Errorf("expected ErrClassNotFound, got %v", err)
-	}
-}
-
 func TestMemoryRepositoryUpdate(t *testing.T) {
 	repo := NewMemoryRepository()
 

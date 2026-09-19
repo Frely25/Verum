@@ -4,8 +4,9 @@ import "errors"
 
 var (
 	// Class errors
-	ErrClassNotFound    = errors.New("class not found")
-	ErrInvalidClassName = errors.New("invalid class name")
+	ErrClassNotFound        = errors.New("class not found")
+	ErrInvalidClassName     = errors.New("invalid class name")
+	ErrJoinCodeAlreadyTaken = errors.New("join code already taken")
 
 	// User errors
 	ErrUserNotFound      = errors.New("user not found")

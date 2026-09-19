@@ -50,20 +50,6 @@ func (m *MemoryRepository) GetByID(id int) (domains.Class, error) {
 	return domains.Class{}, apperrors.ErrClassNotFound
 }
 
-func (m *MemoryRepository) Delete(id int) (domains.Class, error) {
-	for i := 0; i < len(m.classes); i++ {
-		if m.classes[i].ID == id {
-			deletedClass := m.classes[i]
-			m.classes = append(
-				m.classes[:i],
-				m.classes[i+1:]...,
-			)
-			return toDomain(deletedClass), nil
-		}
-	}
-	return domains.Class{}, apperrors.ErrClassNotFound
-}
-
 func (m *MemoryRepository) Update(id int, classChanged domains.Class) (domains.Class, error) {
 	for i := 0; i < len(m.classes); i++ {
 		if m.classes[i].ID == id {
